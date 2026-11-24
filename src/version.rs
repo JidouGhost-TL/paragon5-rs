@@ -50,7 +50,7 @@ const GBASS_V2_CROSSFEED_SIG: [u8; 16] = [
 ];
 
 /// Distinct ARM7TDMI software mixer revisions of the Paragon 5 / GBASS GBA Sound Engine.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub enum Paragon5Version {
     /// Early GBASS Sound System (2 ROMs: *David Beckham Soccer* USA/Europe).
     ///
@@ -67,6 +67,7 @@ pub enum Paragon5Version {
     /// - 1..=8-track self-modifying saturating `[-128, +127]` summing mixer.
     /// - 50% stereo crossfeed post-processor: `L' = clamp(L + (R >> 1))`,
     ///   `R' = clamp(R + (L >> 1))`.
+    #[default]
     GbassV2,
 }
 
@@ -136,6 +137,12 @@ impl Paragon5Version {
             Self::GbassV1 => "Paragon 5 GBASS v1 (Direct Stereo)",
             Self::GbassV2 => "Paragon 5 GBASS v2 (Stereo Crossfeed)",
         }
+    }
+}
+
+impl core::fmt::Display for Paragon5Version {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.name())
     }
 }
 

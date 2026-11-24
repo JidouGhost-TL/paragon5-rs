@@ -103,15 +103,20 @@ impl Paragon5Voice {
         vol_scale_a: u16,
         vol_scale_b: u16,
     ) -> Self {
-        let loop_len_fp16 = if desc.is_looped() {
-            desc.loop_len_fp16()
+        let (end_fp16, loop_len_fp16) = if desc.is_looped() {
+            let end = if desc.loop_end_fp16 <= desc.length_fp16 {
+                desc.loop_end_fp16
+            } else {
+                desc.length_fp16
+            };
+            (end, end.saturating_sub(desc.loop_start_fp16))
         } else {
-            step_fp16
+            (desc.length_fp16, step_fp16)
         };
         Self {
             vol,
             pos_fp16: 0,
-            end_fp16: desc.loop_end_fp16,
+            end_fp16,
             step_fp16,
             loop_len_fp16,
             vol_scale_a,
@@ -156,5 +161,12 @@ impl Paragon5Voice {
     #[must_use]
     pub const fn effective_step_fp16(&self) -> u32 {
         effective_step_q16(self.step_fp16, self.pitch_scale_fp16)
+    }
+}
+
+impl Default for Paragon5Voice {
+    #[inline]
+    fn default() -> Self {
+        Self::silent()
     }
 }

@@ -21,7 +21,7 @@ The **Paragon 5 GBASS Sound System** powered **17 commercial and prototype Game 
 - **Native Binary Parsers**: Zero-allocation parsers for the 64-byte master audio header (`Paragon5MasterHeader`) and 24-byte 16.16 fixed-point PCM8 sample descriptor (`Paragon5SampleDesc`).
 - **Dual Synthesis Engines**:
   - **`AccuracySynth`**: 100% bit-exact emulation of both Paragon 5 / GBASS ARM7TDMI mixer revisions — including 16.16 fixed-point dual-voice pairing with 3-stage volume scaling, signed `smull >> 16` pitch scaling, one-shot freeze-at-end (`loop_len == base_step`), 1..=8-track saturating `[-128, +127]` summing, and the `GbassV2` 50% stereo crossfeed post-processor.
-  - **`StudioSynth`**: Renders at 48,000 Hz, 32-bit floating-point precision with a compile-time 1024-phase × 6-tap Lanczos-3 polyphase windowed-sinc LUT (plus general Lanczos-`a` fallback) and true equal-power stereo panning.
+  - **`StudioSynth`**: Renders at 48,000 Hz, 32-bit floating-point precision with a compile-time 256-phase × 6-tap Lanczos-3 polyphase windowed-sinc LUT (plus general Lanczos-`a` fallback) and true equal-power stereo panning.
 - **Byte-Exact `libmgba` ARM Golden Tested**: 1,024 / 1,024 output bytes + 12 updated 16.16 voice positions verified strictly byte-for-byte (`assert_eq!`) across both GBASS revisions.
 
 ---
