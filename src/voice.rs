@@ -17,7 +17,7 @@ use crate::sample::Paragon5SampleDesc;
 /// - `+0x18`: `vol_scale_a` (`u16`, channel/master volume multiplier)
 /// - `+0x1A`: `vol_scale_b` (`u16`, pan/fade volume multiplier)
 /// - `+0x1C`: `pitch_scale_fp16` (`i32`, signed 16.16 pitch multiplier applied via `smull >> 16`)
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Paragon5Voice {
     /// Base voice volume (`+0x04`).
     pub vol: u32,

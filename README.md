@@ -75,6 +75,21 @@ Every mixing path in `AccuracySynth` is verified strictly byte-for-byte (`assert
 
 ---
 
+## Benchmarks
+
+```sh
+cargo bench --bench bench_audio
+```
+
+| Benchmark | Throughput |
+| --- | ---: |
+| `AccuracySynth::mix_voice_pair` (64f) | ~1.52 GSamples/s |
+| `AccuracySynth::sum_tracks` (8 tracks, 64f) | ~4.77 GSamples/s |
+| `AccuracySynth::apply_stereo_crossfeed` (`GbassV2`, 128f) | ~21.63 GSamples/s |
+| `StudioSynth::render_voice_f32` (48 kHz Lanczos-3, 1,024f) | ~994.9 MSamples/s |
+
+---
+
 ## License
 
 Licensed under either of:

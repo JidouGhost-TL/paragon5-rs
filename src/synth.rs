@@ -115,7 +115,7 @@ static LANCZOS3_LUT: Lanczos3Table = build_lanczos3_lut();
 
 /// Byte-exact ARM7TDMI software mixer emulation for both Paragon 5 / GBASS revisions
 /// ([`Paragon5Version::GbassV1`] and [`Paragon5Version::GbassV2`]).
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct AccuracySynth;
 
 impl AccuracySynth {
@@ -407,7 +407,7 @@ impl AccuracySynth {
 /// Renders signed 8-bit PCM samples at 48,000 Hz (configurable) in 32-bit floating-point using a
 /// compile-time 256-phase × 6-tap Lanczos-3 windowed-sinc polyphase LUT (or general Lanczos-`a`
 /// fallback when `sinc_lobes != 3`) with true equal-power stereo panning.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct StudioSynth {
     /// Output sample rate in Hz (default `48_000`).
     pub sample_rate: u32,
@@ -459,6 +459,7 @@ impl StudioSynth {
             || !freq_hz.is_finite()
             || freq_hz <= 0.0
             || !pos_f64.is_finite()
+            || !volume.is_finite()
         {
             return;
         }
@@ -469,7 +470,12 @@ impl StudioSynth {
         let step = freq_hz / (self.sample_rate as f64);
         let gain = (volume.clamp(0.0, 1.0) as f64) * (1.0 / 128.0);
         // Equal-power stereo pan law: pan in [-1.0, +1.0] -> theta in [0, pi/2]
-        let pan_norm = ((pan.clamp(-1.0, 1.0) as f64) + 1.0) * 0.5;
+        let pan_clamped = if pan.is_finite() {
+            pan.clamp(-1.0, 1.0) as f64
+        } else {
+            0.0
+        };
+        let pan_norm = (pan_clamped + 1.0) * 0.5;
         let angle = pan_norm * core::f64::consts::FRAC_PI_2;
         let gain_l = (gain * cos_const(angle)) as f32;
         let gain_r = (gain * sin_const(angle)) as f32;
@@ -512,7 +518,11 @@ impl StudioSynth {
                 }
 
                 let base = ph as usize;
-                if pcm_len >= 6 && base >= 2 && base <= safe_max_base && step < (1u64 << 31) as f64
+                if pcm_len >= 6
+                    && base >= 2
+                    && base <= safe_max_base
+                    && ph < (1u64 << 31) as f64
+                    && step < (1u64 << 31) as f64
                 {
                     let safe_limit = (safe_max_base as f64) + 0.99;
                     let max_interior = (((safe_limit - ph) / step) as usize) + 1;

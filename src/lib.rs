@@ -21,6 +21,32 @@
 //!     true equal-power stereo panning.
 //! - **Byte-exact `libmgba` ARM golden tested**: 1,024 / 1,024 output bytes + 12 updated 16.16
 //!   voice positions verified strictly byte-for-byte (`assert_eq!`) across both GBASS revisions.
+//!
+//! ## Quickstart
+//!
+//! ```rust
+//! use paragon5::{AccuracySynth, Paragon5Version, Paragon5Voice, PARAGON5_BLOCK_SIZE};
+//!
+//! // Raw signed 8-bit PCM waveforms (0 = silence)
+//! let pcm_a: &[u8] = &[0, 32, 64, 96, 127, 96, 64, 32, 0, 224, 192, 160, 128, 160, 192, 224];
+//! let pcm_b: &[u8] = &[0, 48, 96, 48, 0, 208, 160, 208, 0, 48, 96, 48, 0, 208, 160, 208];
+//!
+//! let mut voice_a = Paragon5Voice::new_looped(
+//!     0x0180, 0, 16 << 16, 0x0001_0000, 16 << 16, 0x0100, 0x0100, 0x0001_0000,
+//! );
+//! let mut voice_b = Paragon5Voice::new_oneshot(
+//!     0x0100, 0, 16 << 16, 0x0000_8000, 0x0100, 0x0100, 0x0001_0000,
+//! );
+//!
+//! let mut track_l = [0i8; PARAGON5_BLOCK_SIZE];
+//! let mut dma_l = [0i8; PARAGON5_BLOCK_SIZE];
+//! let mut dma_r = [0i8; PARAGON5_BLOCK_SIZE];
+//!
+//! AccuracySynth::mix_voice_pair(pcm_a, &mut voice_a, pcm_b, &mut voice_b, &mut track_l);
+//! AccuracySynth::sum_tracks(&[track_l], &mut dma_l).unwrap();
+//! AccuracySynth::post_process_stereo(Paragon5Version::GbassV2, &mut dma_l, &mut dma_r);
+//! assert!(dma_l.iter().any(|&s| s != 0));
+//! ```
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(unsafe_code)]

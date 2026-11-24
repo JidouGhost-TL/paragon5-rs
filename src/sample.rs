@@ -24,7 +24,7 @@ pub const PARAGON5_PITCH_SCALE_ONE: u32 = Q16_ONE;
 ///
 /// The master header locates the song table (`+0x08`), sample count (`+0x18`), and contiguous
 /// 24-byte sample descriptor array (`+0x1C`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Paragon5MasterHeader {
     /// Header word `+0x00` (engine version/flags in GBASS v2; pointer in GBASS v1).
     pub flags_or_ptr: u32,
@@ -70,7 +70,7 @@ impl Paragon5MasterHeader {
     #[inline]
     #[must_use]
     pub const fn sample_table_offset(&self) -> usize {
-        (self.sample_table_ptr - GBA_ROM_BUS_BASE) as usize
+        self.sample_table_ptr.saturating_sub(GBA_ROM_BUS_BASE) as usize
     }
 
     /// Convert `song_table_ptr` to a zero-based ROM file offset, if it lies in GBA ROM space.
@@ -94,7 +94,7 @@ impl Paragon5MasterHeader {
 /// - `+0x0C`: `length_fp16: u32` — Sample length in 16.16 fixed-point (`bytes = length_fp16 >> 16`).
 /// - `+0x10`: `loop_start_fp16: u32` — Loop start in 16.16 fixed-point (`bytes = loop_start_fp16 >> 16`).
 /// - `+0x14`: `loop_end_fp16: u32` — Loop end in 16.16 fixed-point (`bytes = loop_end_fp16 >> 16`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Paragon5SampleDesc {
     /// GBA ROM pointer (`0x08xxxxxx`) to raw signed 8-bit linear PCM (`i8`).
     pub sample_ptr: u32,
@@ -160,7 +160,7 @@ impl Paragon5SampleDesc {
     #[inline]
     #[must_use]
     pub const fn sample_rom_offset(&self) -> usize {
-        (self.sample_ptr - GBA_ROM_BUS_BASE) as usize
+        self.sample_ptr.saturating_sub(GBA_ROM_BUS_BASE) as usize
     }
 
     /// Integer sample length in bytes (`length_fp16 >> 16`).
@@ -232,7 +232,7 @@ impl Paragon5SampleDesc {
 }
 
 /// Zero-allocation borrowed view of a Paragon 5 / GBASS signed 8-bit PCM sample.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Paragon5SampleView<'a> {
     /// Raw signed 8-bit linear PCM bytes (`i8` reinterpreted as `u8`).
     pub pcm_bytes: &'a [u8],
@@ -325,7 +325,7 @@ impl<'a> Paragon5SampleView<'a> {
 
 /// Owned Paragon 5 / GBASS signed 8-bit PCM sample (requires `alloc` feature).
 #[cfg(feature = "alloc")]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Paragon5Sample {
     /// Raw signed 8-bit linear PCM bytes (`i8` reinterpreted as `u8`).
     pub pcm_bytes: Vec<u8>,
